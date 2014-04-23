@@ -4,7 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Chattanooga Bus Driver Sim 2000</title>
+    <title>Oakland Bus Driver Sim 2000</title>
     <style>
       html, body, #map-canvas {
         height: 100%;
@@ -42,20 +42,20 @@
 
       .wrap {
         position: relative;
-        width: 800px;
-        height: 352px;
+        width: 1000px;
+        height: 500px;
         margin: auto;
       }
 
       #cockpit{
-        background: url('cockpit.png') no-repeat scroll 0% 0% transparent;
+        background: url('bus-back.png') no-repeat scroll 0% 0% transparent;
         position: absolute;
         z-index: 8888;
-        top: 0;
-        left: 0;
-        height: 100%;
-        width: 100%;
-        opacity: .8;
+        height: 265px;
+        width: 250px;
+        bottom: 10px;
+        left: 40%;
+        opacity: 1;
       }
 
       #pano {
@@ -64,24 +64,6 @@
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBR8YLtRHYOBK381yao8KXGnzhFlm43SmE&sensor=false"></script>
     <script>
-var headings = {
-  'S'  : 180,
-  'SSW': 202.5,
-  'SW' : 225,
-  'WSW': 247.5,
-  'W'  : 270,
-  'WNW': 292.5,
-  'NW' : 315,
-  'NNW': 337.5,
-  'N'  : 0,
-  'NNE': 22.5,
-  'NE' : 45,
-  'ENE': 67.5,
-  'E'  : 90,
-  'ESE': 112.5,
-  'SE' : 135,
-  'SSE': 157.5 
-}
 
 function initialize() {
   var nullisland = new google.maps.LatLng(0,0);
@@ -101,57 +83,31 @@ function initialize() {
 
 var activeBusId = 0
 var busData = {}
-var server = new EventSource('http://api.chab.us/buses/tail')
+var server = new EventSource('http://nextbus.dathub.org/_changes?include_data=true&style=sse&tail=true&live=true')
 
-function busOutOfService(bus) {
-  return bus.properties.route === 'U' || bus.properties.route === 'PI'
-}
-
-server.addEventListener('add', function (e) {
-    var bus = JSON.parse(e.data)
+server.addEventListener('data', function (e) {
+    var bus = JSON.parse(e.data).data
     busData[bus.id] = bus
-
-    if (busOutOfService(bus)) { return }
-
-
-    document.getElementById('buses').innerHTML += '<option id="bus'+bus.id+'" value="'+bus.id+'">' + bus.id + ' route ' + bus.properties.route + ' to ' + bus.properties.stop +'</option>'
-
+    console.log('Update', bus.id, bus.routeTag)
+    
+    document.getElementById('buses').innerHTML += '<option id="bus'+bus.id+'" value="'+bus.id+'">' + bus.id + ' route ' + bus.routeTag + '</option>'
+    
     // set the first in-service bus we find to the active bus
     if (activeBusId && activeBusId !== bus.id) { return }
     activeBusId = bus.id
-
-    draw(bus)
-  })
-
-server.addEventListener('remove', function (e) {
-  var bus = JSON.parse(e.data)
-  if (activeBusId === bus.id) { activeBusId = 0}
-  delete busData[bus.id]
-  document.getElementById('buses').removeChild(document.getElementById('bus'+bus.id))
-})
-
-server.addEventListener('change', function (e) {
-    var bus = JSON.parse(e.data)
-    if (busOutOfService(bus)) { return }
-
-    // update the select dropdown
-    document.getElementById('bus'+bus.id).textContent = bus.id + ' route ' + bus.properties.route + ' to ' + bus.properties.stop
-
-    if (activeBusId && activeBusId === bus.id) {
-      draw(bus)  
-    }
     
+    draw(bus)
   })
 
 
 
   function draw(bus) {
-
-    var pos = new google.maps.LatLng(bus.geometry.coordinates[1], bus.geometry.coordinates[0])
+    console.log('draw', bus)
+    var pos = new google.maps.LatLng(+bus.lat, +bus.lon)
 
     panorama.setPosition(pos)
     panorama.setPov({
-          heading: headings[bus.properties.heading],
+          heading: +bus.heading,
           pitch: 10
         })
 
@@ -160,7 +116,7 @@ server.addEventListener('change', function (e) {
   
     map.panTo(pos)
 
-    document.getElementById('details').textContent = JSON.stringify(bus.properties,null,2)
+    document.getElementById('details').textContent = JSON.stringify(bus,null,2)
 
   }
 
@@ -181,7 +137,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
     </script>
   </head>
   <body>
-    <h1>Chattanooga Bus Driver Sim 2000</h1>
+    <h1>Oakland Bus Driver Sim 2000</h1>
     
     <div class="wrap">
       <div id="pano"></div>
@@ -203,8 +159,9 @@ google.maps.event.addDomListener(window, 'load', initialize);
         </div>
       </div>
     </div>
-    <div class="wrap">Yes, you're seeing Streetview imagery based on real-time bus tracking information from CARTA. 
-      <a href="https://github.com/jden/bus-sim">view source on github</a>. Built <option></option> the <a href="http://chab.us">chab.us api</a>
+    <div class="wrap">
+      <p>Yes, you're seeing Streetview imagery based on real-time bus tracking information from ACTransit.</p>
+      <p><a href="https://github.com/openoakland/bus-sim">view source on github</a>. Forked from <a href="http://github.com/jden-bus-sim">jden/bus-sim</a></p>
     </div>
     <script>
 
