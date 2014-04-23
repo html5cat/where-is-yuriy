@@ -1,9 +1,9 @@
-bus-sim
+Where is Yuriy?
 =======
 
-Oakland Bus Driver Sim 2000
+Where is he and where is he looing? In realtime of course. Webscale ready.
 
-forked from https://github.com/jden/bus-sim
+forked from https://github.com/jden/bus-sim 
 
 ![screenshot.png](screenshot.png)
 
