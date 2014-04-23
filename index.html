@@ -1,10 +1,8 @@
-
-
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Oakland Bus Driver Sim 2000</title>
+    <title>Where is Yuriy</title>
     <style>
       html, body, #map-canvas {
         height: 100%;
@@ -14,7 +12,7 @@
         font-family: impact, sans-serif;
       }
 
-      h1{ 
+      h1{
 
         text-align: center;
       }
@@ -48,7 +46,7 @@
       }
 
       #cockpit{
-        background: url('bus-back.png') no-repeat scroll 0% 0% transparent;
+        background: url('http://placekitten.com/160/250') no-repeat scroll 0% 0% transparent;
         position: absolute;
         z-index: 8888;
         height: 160px;
@@ -64,6 +62,7 @@
       }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBR8YLtRHYOBK381yao8KXGnzhFlm43SmE&sensor=false"></script>
+    <script src="https://dweet.io/client/dweet.io.min.js"></script>
     <script>
 
 function initialize() {
@@ -82,54 +81,50 @@ function initialize() {
   map.setStreetView(panorama);
 
 
-var activeBusId = 0
-var busData = {}
-var server = new EventSource('http://nextbus.dathub.org/_changes?include_data=true&style=sse&tail=true&live=true')
+  // var activeBusId = 0
+  // var busData = {}
+  // var server = new EventSource('http://dweet.io/get/latest/dweet/for/berserk-smile')
 
-server.addEventListener('data', function (e) {
-    var bus = JSON.parse(e.data).data
-    busData[bus.id] = bus
-    console.log('Update', bus.id, bus.routeTag)
-    
-    document.getElementById('buses').innerHTML += '<option id="bus'+bus.id+'" value="'+bus.id+'">' + bus.id + ' route ' + bus.routeTag + '</option>'
-    
-    // set the first in-service bus we find to the active bus
-    if (activeBusId && activeBusId !== bus.id) { return }
-    activeBusId = bus.id
-    
-    draw(bus)
+  dweetio.get_latest_dweet_for("berserk-smile", function(err, dweet){
+
+      var dweet = dweet[0]; // Dweet is always an array of 1
+
+      console.log(dweet.thing); // The generated name
+      console.log(dweet.content); // The content of the dweet
+      console.log(dweet.created); // The create date of the dweet
+
+      draw(dweet);
+  });
+
+  dweetio.listen_for("berserk-smile", function(dweet){
+    console.log('Update', dweet);
+    draw(dweet);
   })
 
 
 
   function draw(bus) {
     console.log('draw', bus)
-    var pos = new google.maps.LatLng(+bus.lat, +bus.lon)
+    var pos = new google.maps.LatLng(+bus.content.your_latitude, +bus.content.your_longitude)
 
     panorama.setPosition(pos)
     panorama.setPov({
-          heading: +bus.heading,
-          pitch: 10
+          heading: -bus.content.tilt_z,
+          pitch: bus.content.tilt_x
         })
 
     // prevent greyness
     panorama.setVisible(true)
-  
+
     map.panTo(pos)
 
     document.getElementById('details').textContent = JSON.stringify(bus,null,2)
 
   }
 
-  document.getElementById('realism').addEventListener('change', function () {
+  document.getElementById('realism').addEventListener('input', function () {
     document.getElementById('cockpit').style.opacity = document.getElementById('realism').value
   })
-
-  document.getElementById('buses').addEventListener('change', function () {
-    activeBusId = document.getElementById('buses').value
-    draw(busData[activeBusId])
-  })
-
 
 }
 
@@ -138,8 +133,8 @@ google.maps.event.addDomListener(window, 'load', initialize);
     </script>
   </head>
   <body>
-    <h1>Oakland Bus Driver Sim 2000</h1>
-    
+    <h1>Where is Yuriy?</h1>
+
     <div class="wrap">
       <div id="pano"></div>
       <div id="cockpit"></div>
@@ -148,9 +143,6 @@ google.maps.event.addDomListener(window, 'load', initialize);
     <div class="wrap">
       <div id="map-canvas"></div>
       <div id="controlpanel">
-        <div>
-          Bus <select id="buses"></select>
-        </div>
         <div>
           Realism <input type="range" id="realism" min="0" max="1" step=".1" value=".8"/>
         </div>
@@ -161,8 +153,8 @@ google.maps.event.addDomListener(window, 'load', initialize);
       </div>
     </div>
     <div class="wrap">
-      <p>Yes, you're seeing Streetview imagery based on real-time bus tracking information from ACTransit.</p>
-      <p><a href="https://github.com/openoakland/bus-sim">view source on github</a>. Forked from <a href="http://github.com/jden-bus-sim">jden/bus-sim</a></p>
+      <p>Yes, you're seeing Streetview imagery based on real-time Yuriy tracking information from Yuriy's iPhone.</p>
+      <p><a href="https://github.com/dybskiy/bus-sim">view source on github</a>. Forked from <a href="http://github.com/jden-bus-sim">jden/bus-sim</a></p>
     </div>
     <script>
 
